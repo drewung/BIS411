@@ -1,26 +1,17 @@
----
-  title:test
-  output: 
-  authors
----
-  
+install.packages("remotes")
+remotes::install_github("abresler/nbastatR", force = TRUE)
 
-  
-```{r}
-#run devtools to download first
-install.packages("devtools")
-install.packages("Rtools")
-
-#apply pacakge
-library(devtools)
-library(Rtools)
-
-#then run this code
-#setup code
-
-#run this in console,
-#devtools::install_github("abresler/nbastatR")
-
-#finailzie nbastatR
 library(nbastatR)
-```
+library(future)
+Sys.setenv(VROOM_CONNECTION_SIZE = 131072 * 10)
+
+# Use multisession for Windows parallelism (recommended instead of multiprocess)
+plan(multisession)
+
+# Now run your data download with parallel computing enabled
+game_logs(seasons = 2022:2024)
+
+# Check draft combine data for 2025 season (or upcoming)
+combine_2024 <- draft_combines(years = 2024, return_message = TRUE, nest_data = FALSE)
+print(head(combine_2024))
+
