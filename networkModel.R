@@ -131,17 +131,22 @@ for(i in 1:min(5, max(membership(communities)))) {
       ifelse(length(community_players) > 5, "...", ""), "\n")
 }
 
+players_network <- simplify(players_network, remove.multiple = TRUE, remove.loops = TRUE)
+
+
+
+
+
 # Plot network
 plot(players_network,
+     layout = layout_with_fr(players_network),
      vertex.label = ifelse(between > quantile(between, 0.9), 
-                          substr(V(players_network)$name, 1, 8), NA),
+                           V(players_network)$name, NA),
      vertex.color = membership(communities),
      vertex.size = between * 0.01 + 3,
-     edge.width = 0.5,
+     edge.width = 0.1,
      edge.color = "gray80",
      main = "NBA Player Communities\n(Colors = Communities, Size = Betweenness)")
-
-
 
 
 
