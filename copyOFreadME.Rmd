@@ -101,12 +101,12 @@ filtered_network <- teammate_pairs %>%
   filter(player1 %in% top_players & player2 %in% top_players)
 
 
-
+#Creates graph
 players_network <- graph_from_data_frame(filtered_network, directed = FALSE)
-
 # Simplify graph (remove loops and multiple edges)
 players_network <- simplify(players_network)
 ```
+
 
 ###Detection
 
@@ -146,10 +146,17 @@ for(i in 1:min(5, max(membership_vec))) {
 ```
 
 ### Brokerage Analysis
-
 ```{r brokerage}
+#install intergraph to convert the network.
+#install.packages("intergraph", dependencies = TRUE)
+
+library(intergraph)
+snaNetwork <- asNetwork(players_network)  # Convert igraph network into an sna object
 
 
+library(statnet)
+brokerage_results <- brokerage(snaNetwork, cl = get.vertex.attribute(snaNetwork, "community"))
+brokerage_results$raw.nli
 ```
 
 ### Description of the Data and Link
