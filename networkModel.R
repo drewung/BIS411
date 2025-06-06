@@ -138,19 +138,36 @@ for(i in 1:min(5, max(membership(communities)))) {
 players_network <- simplify(players_network, remove.multiple = TRUE, remove.loops = TRUE)
 
 
+#color
 
 
+# Find the top player in each community
+community_tops <- by(1:length(V(players_network)), membership(communities), function(idx) {
+  community_betweenness <- between[idx]
+  idx[which.max(community_betweenness)]
+})
+
+# Convert to vector of indices
+top_in_each_community <- unlist(community_tops)
+
+# Create label color and font vectors
+label_colors <- rep("black", length(V(players_network)))
+label_fonts <- rep(1, length(V(players_network)))
+
+# Top player in each community - red and bold
+label_colors[top_in_each_community] <- "blue"
+label_fonts[top_in_each_community] <- 2
 
 # Plot network
 plot(players_network,
      layout = layout_with_kk(players_network),
-     vertex.label = ifelse(between > quantile(between, 0.9), 
+     vertex.label = ifelse(between > quantile(between, 0.1), 
                            V(players_network)$name, NA),
+     vertex.label.color = label_colors,
+     vertex.label.font = label_fonts,
+     vertex.label.cex = 0.8,
      vertex.color = membership(communities),
      vertex.size = between * 0.01 + 3,
      edge.width = 0.1,
      edge.color = "gray80",
-     main = "NBA Player Communities\n(Colors = Communities, Size = Betweenness)")
-
-
-
+     main = "NBA Player Communities\n(Red Labels = Community Leaders, Colors = Communities)")
