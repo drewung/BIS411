@@ -46,7 +46,7 @@ library(sna)  # For brokerage analysis
 Sys.setenv(VROOM_CONNECTION_SIZE = 131072 * 10)
 
 #change season to anything from (ex 2020:2024, from 2020 to 2024 seasons)
-game_data <- game_logs(seasons = 2023)
+game_data <- game_logs(seasons = 2000:2010)
 ```
 
 ### Creating Graph Objects
@@ -182,34 +182,28 @@ colnames(brokerage_df) <- c(
   "Total"            # was t
 )
 
-# 1. View head sorted by Total column (column 6)
-head(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), ])
+# Show all data sorted by Total
+print("=== ALL PLAYERS BY TOTAL BROKERAGE ===")
+print(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), ])
 
-# 2. View head sorted by Coordinator column (column 1)
-head(brokerage_df[order(brokerage_df[, "Coordinator"], decreasing = TRUE), ])
+# Show top 5 by Total
+print("=== TOP 5 TOTAL BROKERS ===")
+print(head(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), ], 5))
 
-# 3. View just top 5 by Total with row names
-head(brokerage_df[order(brokerage_df[, 6], decreasing = TRUE), ], 5)
+# Show significant brokers (z > 1.96)
+significant <- brokerage_df[brokerage_df[, "Total"] > 1.96, ]
+if(nrow(significant) > 0) {
+  print("=== SIGNIFICANT TOTAL BROKERS (z > 1.96) ===")
+  print(significant[order(significant[, "Total"], decreasing = TRUE), ])
+}
 
-# 4. View specific columns sorted by Total
-head(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), c("Total", "Coordinator")])
-
-# 5. Quick view using column numbers (Total is column 6)
-head(brokerage_df[order(brokerage_df[, 6], decreasing = TRUE), ])
-
-# 6. View top 3 by any column (replace "Liaison" with any column name)
-head(brokerage_df[order(brokerage_df[, "Liaison"], decreasing = TRUE), ], 3)
-
-# 7. Using minus for descending sort
-head(brokerage_df[order(-brokerage_df[, "Total"]), ])
-
-# 8. See top player in each category
-colnames(brokerage_df)[apply(brokerage_df, 2, which.max)]
-
-# 9. Simple sort by column number (1=Coordinator, 2=Consultant, 3=Representative, 4=Gatekeeper, 5=Liaison, 6=Total)
-head(brokerage_df[order(brokerage_df[, 1], decreasing = TRUE), ])
-
-
+# Show top player in each category
+print("=== TOP PLAYER BY CATEGORY ===")
+for(col in colnames(brokerage_df)) {
+  top_player <- rownames(brokerage_df)[which.max(brokerage_df[, col])]
+  top_score <- max(brokerage_df[, col])
+  print(paste(col, ":", top_player, "(", top_score, ")"))
+}
 ```
 
 ### Description of the Data and Link
