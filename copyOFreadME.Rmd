@@ -95,7 +95,7 @@ player_connections <- teammate_pairs %>%
   arrange(desc(total_teammates))
 
 #choose the top 50%
-top_players <- head(player_connections$player1, 50)
+top_players <- head(player_connections$player1, 100)
 
 filtered_network <- teammate_pairs %>%
   filter(player1 %in% top_players & player2 %in% top_players)
@@ -112,24 +112,18 @@ players_network <- simplify(players_network)
 
 ```{r detetcion}
 # Community detection
+# Example in igraph
 communities <- cluster_louvain(players_network)
-membership_vec <- membership(communities)
+
+
+V(players_network)$community <- membership(communities_louvain)
 
 # Betweenness centrality
 between <- igraph::betweenness(players_network)
 
-#removed normalized true
-bet_normalized <- igraph::betweenness(players_network)
-bet.dat <- data.frame(
-  player = V(players_network)$name,
-  between = between,
-  bet_normalized = bet_normalized,
-  community = membership_vec
-)
-
 
 #showcases top broker players with between centrality
-at("=== TOP BROKER PLAYERS (Betweenness Centrality) ===\n")
+at("=== (Betweenness Centrality) ===\n")
 print(head(bet.dat[order(bet.dat$between, decreasing = TRUE),], 10))
 
 #community structure
@@ -147,16 +141,75 @@ for(i in 1:min(5, max(membership_vec))) {
 
 ### Brokerage Analysis
 ```{r brokerage}
-#install intergraph to convert the network.
-#install.packages("intergraph", dependencies = TRUE)
-
 library(intergraph)
-snaNetwork <- asNetwork(players_network)  # Convert igraph network into an sna object
-
-
 library(statnet)
+library(knitr)
+library(dplyr)
+
+# Convert igraph to network
+snaNetwork <- asNetwork(players_network)
+
+# Confirm the network size matches igraph vertex count
+stopifnot(network.size(snaNetwork) == length(V(players_network)))
+
+community_named <- membership(communities)
+names(community_named) <- V(players_network)$name
+
+# 5. Assign community attribute to the network vertices by matching names
+set.vertex.attribute(
+  snaNetwork,
+  "community",
+  value = community_named[get.vertex.attribute(snaNetwork, "vertex.names")]
+)
+
+# 6. Confirm community distribution
+print(table(get.vertex.attribute(snaNetwork, "community")))
+
+# 7. Run brokerage analysis
 brokerage_results <- brokerage(snaNetwork, cl = get.vertex.attribute(snaNetwork, "community"))
-brokerage_results$raw.nli
+
+# Create dataframe from results
+brokerage_df <- round(brokerage(snaNetwork, cl=get.vertex.attribute(snaNetwork, "community"))$z.nli, 2) 
+
+#un rounded non nom,rialized
+#brokerage_dftest <- brokerage_results$raw.nli
+colnames(brokerage_df) <- c(
+  "Coordinator",     # was w_I
+  "Consultant",      # was w_O
+  "Representative",  # was b_IO
+  "Gatekeeper",      # was b_OI
+  "Liaison",         # was b_O
+  "Total"            # was t
+)
+
+# 1. View head sorted by Total column (column 6)
+head(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), ])
+
+# 2. View head sorted by Coordinator column (column 1)
+head(brokerage_df[order(brokerage_df[, "Coordinator"], decreasing = TRUE), ])
+
+# 3. View just top 5 by Total with row names
+head(brokerage_df[order(brokerage_df[, 6], decreasing = TRUE), ], 5)
+
+# 4. View specific columns sorted by Total
+head(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), c("Total", "Coordinator")])
+
+# 5. Quick view using column numbers (Total is column 6)
+head(brokerage_df[order(brokerage_df[, 6], decreasing = TRUE), ])
+
+# 6. View top 3 by any column (replace "Liaison" with any column name)
+head(brokerage_df[order(brokerage_df[, "Liaison"], decreasing = TRUE), ], 3)
+
+# 7. Using minus for descending sort
+head(brokerage_df[order(-brokerage_df[, "Total"]), ])
+
+# 8. See top player in each category
+colnames(brokerage_df)[apply(brokerage_df, 2, which.max)]
+
+# 9. Simple sort by column number (1=Coordinator, 2=Consultant, 3=Representative, 4=Gatekeeper, 5=Liaison, 6=Total)
+head(brokerage_df[order(brokerage_df[, 1], decreasing = TRUE), ])
+
+
 ```
 
 ### Description of the Data and Link
