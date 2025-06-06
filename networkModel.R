@@ -58,7 +58,7 @@ library(future)
 #plan(multisession)
 
 # Now run your data download with parallel computing enabled
-game_data <- game_logs(seasons = 2020:2024)
+game_data <- game_logs(seasons = 2024)
 
 # Create player-to-player network based on shared teams
 cat("Creating player teammate network...\n")
@@ -99,14 +99,18 @@ player_connections <- teammate_pairs %>%
   arrange(desc(total_teammates))
 
 # Take top connected players for network analysis
-top_players <- head(player_connections$player1, 100)
+top_players <- head(player_connections$player1, 50)
 
 # Filter network to top players
 filtered_network <- teammate_pairs %>%
   filter(player1 %in% top_players & player2 %in% top_players)
 
+
+
 # Create network
 players_network <- graph_from_data_frame(filtered_network, directed = FALSE)
+
+
 
 # Calculate betweenness centrality (broker players)
 between <- betweenness(players_network, normalized = FALSE)
@@ -139,7 +143,7 @@ players_network <- simplify(players_network, remove.multiple = TRUE, remove.loop
 
 # Plot network
 plot(players_network,
-     layout = layout_with_fr(players_network),
+     layout = layout_with_kk(players_network),
      vertex.label = ifelse(between > quantile(between, 0.9), 
                            V(players_network)$name, NA),
      vertex.color = membership(communities),
