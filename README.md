@@ -13,7 +13,7 @@ output:
 
 ## Narrative Summary
 This project analyzes NBA player career trajectories and teammate networks using 
-network analysis. We focus on the ____ draft class and ___ season teammates to 
+network analysis. We focus on the ___ draft class and ___ season teammates to 
 explore how players connect through shared teams, and use network metrics and 
 community detection to identify key players and roles. We also will be exploring 
 "broker" players The goal is to visualize and interpret player dynamics 
