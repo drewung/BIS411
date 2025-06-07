@@ -234,12 +234,7 @@ for(col in colnames(brokerage_df)) {
 
 One example I tried was the seasons (2016:2024),
 
-```{r example}
-=== TOP 3 Total === 
-1. Jeff Green (5.51)
-2. Markieff Morris (5.20)
-3. Robert Covington (3.07)
-```
+![](images/Screenshot%202025-06-06%20185157-01.png)
 
 "...Because even though Jeff Green’s journeyman path through the NBA has been un-sexy, he’s been able to keep a job in the league for 15 seasons, playing for eleven teams, and collecting a lot of paychecks. Jeff Green is the opposite of a “star” and there’s actually something cool about that." - BasketBallxFeelings
 
@@ -249,25 +244,13 @@ As noted in a Reddit post, Jeff Green has carved out a long career as a journeym
 
 Another example I analyzed was from the seasons 2020 to 2024.
 
+![](images/clipboard-3321849320.png)
+
 This yielded interesting results. Most top ranked players in this window, like Wenyen Gabriel and Troy Brown Jr, fit the journeyman profile.
 
 James Harden stood out. Despite being a star player, Harden appears with a high brokerage role total (2.74), indicating that even elite players can take on connector roles across multiple teams. His strong scores in coordinator and gatekeeper roles reflect his influence beyond just scoring.
 
-```{r example2}
-# Brokerage Role Scores (2020–2024)
-
-brokerage_scores <- data.frame(
-  Player = c("Wenyen Gabriel", "Troy Brown Jr.", "Dennis Schröder", "James Harden", "Shake Milton"),
-  Coordinator = c(1.59, 1.61, 6.75, 6.83, 2.77),
-  Consultant = c(-1.50, -2.63, -2.23, -2.04, -1.45),
-  Representative = c(4.22, 3.86, 3.28, 4.56, 4.16),
-  Gatekeeper = c(4.22, 3.86, 3.28, 4.56, 4.16),
-  Liaison = c(3.87, 2.63, -0.33, -1.45, 0.79),
-  Total = c(4.01, 3.51, 2.78, 2.74, 2.50)
-)
-
-print(brokerage_scores)
-```
+![](images/Screenshot%202025-06-06%20185806-01.png)
 
 <https://www.reddit.com/r/nba/comments/oyk95z/dennis_schroder_is_running_out_of_options_on/> <https://www.reddit.com/r/nba/comments/1hegyvq/slater_dennis_schroder_has_now_changed_teams/>
 
