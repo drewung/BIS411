@@ -169,7 +169,10 @@ Here are the resources I used to help me,
 
 ```{r Brokerage}
 
+#MAKE SURE TO RUN THIS LINE, aS IT WILL CONFUSE SAME FUNCTIONS FROM EARLIER PACKAGES
 install.packages("intergraph", dependencies = TRUE)
+
+#PACKAGES
 library(intergraph)
 library(statnet)
 library(knitr)
