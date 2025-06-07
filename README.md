@@ -242,15 +242,13 @@ One example I tried was the seasons (2016:2024),
 
 As noted in a Reddit post, Jeff Green has carved out a long career as a journeyman playing for 11 teams over 15 seasons. Our brokerage analysis supports this narrative, showing he holds the highest total score across multiple connective roles in the league.
 
-Another example I analyzed was from the seasons 2020 to 2024.
-
-![](images/clipboard-3321849320.png)
+Another example I analyzed was from the seasons 2020 to 2024.![](images/clipboard-3321849320.png)
 
 This yielded interesting results. Most top ranked players in this window, like Wenyen Gabriel and Troy Brown Jr, fit the journeyman profile.
 
-James Harden stood out. Despite being a star player, Harden appears with a high brokerage role total (2.74), indicating that even elite players can take on connector roles across multiple teams. His strong scores in coordinator and gatekeeper roles reflect his influence beyond just scoring.
-
-![](images/Screenshot%202025-06-06%20185806-01.png)
+James Harden stood out. Despite being a star player, Harden appears with a high brokerage role total (2.74), indicating that even elite players can take on connector roles across multiple teams. His strong scores in coordinator and gatekeeper roles reflect his influence beyond just scoring.\
+\
+Here are other articles on player Dennis Schroder,
 
 <https://www.reddit.com/r/nba/comments/oyk95z/dennis_schroder_is_running_out_of_options_on/> <https://www.reddit.com/r/nba/comments/1hegyvq/slater_dennis_schroder_has_now_changed_teams/>
 
