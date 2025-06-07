@@ -17,12 +17,10 @@ This project analyzes NBA player career trajectories and teammate networks using
 
 The goal is to visualize and interpret player dynamics through graph structures.
 
-Our main package for data is going to be `nbastatR` to access real NBA data, 
-and `igraph`, `ggraph`, and `dplyr` for data wrangling, network creation, and 
-visualization. This work could help illustrate team structures and player centrality 
-to coaches, analysts, or fans. 
+Our main package for data is going to be `nbastatR` to access real NBA data, and `igraph`, `ggraph`, and `dplyr` for data wrangling, network creation, and visualization. This work could help illustrate team structures and player centrality to coaches, analysts, or fans.
 
 ## Setup Process
+
 ```{r setup}
 #installing packages
 install.packages("remotes")
@@ -31,14 +29,12 @@ remotes::install_github("abresler/nbastatR", force = TRUE)
 ```
 
 ### Packages Used
+
 ```{r packages}
 #dataset package
 library(nbastatR)
 
-# For brokerage analysis
-library(sna)
-library(intergraph)
-library(statnet)
+
 
 #packages needed
 library(devtools)
@@ -48,18 +44,25 @@ library(ggplot2)
 library(igraph)
 library(Rtools)
 library(knitr)
+
+
+# For brokerage analysis
+library(sna)
+
 ```
 
 ### Reading in the Data Sets
+
 ```{r datasets}
 #Adjust VROOM buffer size for large data!
 Sys.setenv(VROOM_CONNECTION_SIZE = 131072 * 10)
 
 #change season to anything from (ex 2020:2024, from 2020 to 2024 seasons)
-game_data <- game_logs(seasons = 2000:2010)
+game_data <- game_logs(seasons = 2020)
 ```
 
 ### Creating Graph Objects
+
 ```{r graphObjects}
 # Create player-to-player network based on shared teams
 cat("Creating player teammate network...\n")
@@ -94,6 +97,7 @@ cat("Teammate connections created:", nrow(teammate_pairs), "\n")
 ```
 
 ### Filtering
+
 ```{r filtering}
 cat("Filtering connections betwene players...\n")
 # most connected players
@@ -112,13 +116,16 @@ filtered_network <- teammate_pairs %>%
 #Creates graph + simplfly (remove loops and multiple edges)
 players_network <- graph_from_data_frame(filtered_network, directed = FALSE)
 players_network <- simplify(players_network)
+
+
 ```
 
 ###Detection
+
 ```{r detection}
 # Detect communities using Louvain algorithm
 communities <- cluster_louvain(players_network)
-V(players_network)$community <- membership(communities_louvain)
+V(players_network)$community <- membership(ommunities_louvain)
 
 #Calculate betweenness centrality
 between <- igraph::betweenness(players_network)
@@ -156,11 +163,17 @@ Z-scores show statistical significance - values \>1.96 are unusually high broker
 
 Here are the resources I used to help me,
 
-https://www.rdocumentation.org/packages/sna/versions/2.8/topics/brokerage
+<https://www.rdocumentation.org/packages/sna/versions/2.8/topics/brokerage>
 
-https://rstudio-pubs-static.s3.amazonaws.com/320424_f1e3875c90dd489983f92c7628164bdc.html#Brokerage_Roles
+<https://rstudio-pubs-static.s3.amazonaws.com/320424_f1e3875c90dd489983f92c7628164bdc.html#Brokerage_Roles>
 
 ```{r Brokerage}
+
+install.packages("intergraph", dependencies = TRUE)
+library(intergraph)
+library(statnet)
+library(knitr)
+library(dplyr)
 # Convert igraph to sna network
 snaNetwork <- asNetwork(players_network)
 
@@ -181,8 +194,6 @@ set.vertex.attribute(
 #  Check to see if community listed
 print(table(get.vertex.attribute(snaNetwork, "community")))
 
-# Brokerage Analysis
-brokerage_results <- brokerage(snaNetwork, cl = get.vertex.attribute(snaNetwork, "community"))
 
 # Create dataframe from brokerage anaylsis result, 2 DIGITS
 brokerage_df <- round(brokerage(snaNetwork, cl=get.vertex.attribute(snaNetwork, "community"))$z.nli, 2) 
@@ -224,6 +235,7 @@ for(col in colnames(brokerage_df)) {
 ### Description of the Data and Link
 
 ## Network Plot
+
 ```{r plotting}
 # Find the top player in each community
 community_tops <- by(1:length(V(players_network)), membership(communities), function(idx) {
