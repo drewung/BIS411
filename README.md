@@ -34,8 +34,6 @@ remotes::install_github("abresler/nbastatR", force = TRUE)
 #dataset package
 library(nbastatR)
 
-
-
 #packages needed
 library(devtools)
 library(dplyr)
@@ -44,7 +42,6 @@ library(ggplot2)
 library(igraph)
 library(Rtools)
 library(knitr)
-
 
 # For brokerage analysis
 library(sna)
@@ -56,9 +53,9 @@ library(sna)
 ```{r datasets}
 #Adjust VROOM buffer size for large data!
 Sys.setenv(VROOM_CONNECTION_SIZE = 131072 * 10)
-
+#2022:2024) dennis
 #change season to anything from (ex 2020:2024, from 2020 to 2024 seasons)
-game_data <- game_logs(seasons = 2022:2024)
+game_data <- game_logs(seasons = 2020:2024)
 ```
 
 ### Creating Graph Objects
@@ -112,7 +109,6 @@ top_players <- head(player_connections$player1, 100)
 filtered_network <- teammate_pairs %>%
   filter(player1 %in% top_players & player2 %in% top_players)
 
-
 #Creates graph + simplfly (remove loops and multiple edges)
 players_network <- graph_from_data_frame(filtered_network, directed = FALSE)
 players_network <- simplify(players_network)
@@ -120,12 +116,12 @@ players_network <- simplify(players_network)
 
 ```
 
-###Detection
+### Detection
 
 ```{r detection}
 # Detect communities using Louvain algorithm
 communities <- cluster_louvain(players_network)
-V(players_network)$community <- membership(ommunities_louvain)
+V(players_network)$community <- membership(communities_louvain)
 
 #Calculate betweenness centrality
 between <- igraph::betweenness(players_network)
@@ -135,8 +131,7 @@ at("=== (Betweenness Centrality) ===\n")
 print(head(bet.dat[order(bet.dat$between, decreasing = TRUE),], 10))
 
 # Community summary
-cat("\n=== COMMUNITY STRUCTURE ===\n")
-cat("Number of communities:", max(membership_vec), "\n")
+cat("\n=== COMMUNITY STRUCTURE ===\n"
 cat("Modularity:", round(modularity(communities), 3), "\n")
 
 # Members of community
@@ -236,6 +231,45 @@ for(col in colnames(brokerage_df)) {
 ```
 
 ### Description of the Data and Link
+
+One example I tried was the seasons (2016:2024),
+
+```{r example}
+=== TOP 3 Total === 
+1. Jeff Green (5.51)
+2. Markieff Morris (5.20)
+3. Robert Covington (3.07)
+```
+
+"...Because even though Jeff Green’s journeyman path through the NBA has been un-sexy, he’s been able to keep a job in the league for 15 seasons, playing for eleven teams, and collecting a lot of paychecks. Jeff Green is the opposite of a “star” and there’s actually something cool about that." - BasketBallxFeelings
+
+<https://www.reddit.com/r/nbadiscussion/comments/15jadhd/jeff_green_is_kinda_an_nba_legend/>
+
+As noted in a Reddit post, Jeff Green has carved out a long career as a journeyman playing for 11 teams over 15 seasons. Our brokerage analysis supports this narrative, showing he holds the highest total score across multiple connective roles in the league.
+
+Another example I analyzed was from the seasons 2020 to 2024.
+
+This yielded interesting results. Most top ranked players in this window, like Wenyen Gabriel and Troy Brown Jr, fit the journeyman profile.
+
+James Harden stood out. Despite being a star player, Harden appears with a high brokerage role total (2.74), indicating that even elite players can take on connector roles across multiple teams. His strong scores in coordinator and gatekeeper roles reflect his influence beyond just scoring.
+
+```{r example2}
+# Brokerage Role Scores (2020–2024)
+
+brokerage_scores <- data.frame(
+  Player = c("Wenyen Gabriel", "Troy Brown Jr.", "Dennis Schröder", "James Harden", "Shake Milton"),
+  Coordinator = c(1.59, 1.61, 6.75, 6.83, 2.77),
+  Consultant = c(-1.50, -2.63, -2.23, -2.04, -1.45),
+  Representative = c(4.22, 3.86, 3.28, 4.56, 4.16),
+  Gatekeeper = c(4.22, 3.86, 3.28, 4.56, 4.16),
+  Liaison = c(3.87, 2.63, -0.33, -1.45, 0.79),
+  Total = c(4.01, 3.51, 2.78, 2.74, 2.50)
+)
+
+print(brokerage_scores)
+```
+
+<https://www.reddit.com/r/nba/comments/oyk95z/dennis_schroder_is_running_out_of_options_on/> <https://www.reddit.com/r/nba/comments/1hegyvq/slater_dennis_schroder_has_now_changed_teams/>
 
 ## Network Plot
 
