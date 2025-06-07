@@ -34,8 +34,6 @@ remotes::install_github("abresler/nbastatR", force = TRUE)
 #dataset package
 library(nbastatR)
 
-
-
 #packages needed
 library(devtools)
 library(dplyr)
@@ -44,7 +42,6 @@ library(ggplot2)
 library(igraph)
 library(Rtools)
 library(knitr)
-
 
 # For brokerage analysis
 library(sna)
@@ -56,9 +53,9 @@ library(sna)
 ```{r datasets}
 #Adjust VROOM buffer size for large data!
 Sys.setenv(VROOM_CONNECTION_SIZE = 131072 * 10)
-
+#2022:2024) dennis
 #change season to anything from (ex 2020:2024, from 2020 to 2024 seasons)
-game_data <- game_logs(seasons = 2022:2024)
+game_data <- game_logs(seasons = 2016:2024)
 ```
 
 ### Creating Graph Objects
@@ -112,7 +109,6 @@ top_players <- head(player_connections$player1, 100)
 filtered_network <- teammate_pairs %>%
   filter(player1 %in% top_players & player2 %in% top_players)
 
-
 #Creates graph + simplfly (remove loops and multiple edges)
 players_network <- graph_from_data_frame(filtered_network, directed = FALSE)
 players_network <- simplify(players_network)
@@ -120,7 +116,7 @@ players_network <- simplify(players_network)
 
 ```
 
-###Detection
+### Detection
 
 ```{r detection}
 # Detect communities using Louvain algorithm
@@ -236,6 +232,19 @@ for(col in colnames(brokerage_df)) {
 ```
 
 ### Description of the Data and Link
+
+With 
+[1] "=== TOP 3 Total ==="
+[1] "1 . Jeff Green ( 5.51 )"
+[1] "2 . Markieff Morris ( 5.2 )"
+[1] "3 . Robert Covington ( 3.07 )"
+
+https://www.reddit.com/r/nbadiscussion/comments/15jadhd/jeff_green_is_kinda_an_nba_legend/
+
+https://www.reddit.com/r/nba/comments/oyk95z/dennis_schroder_is_running_out_of_options_on/
+https://www.reddit.com/r/nba/comments/1hegyvq/slater_dennis_schroder_has_now_changed_teams/
+
+
 
 ## Network Plot
 
