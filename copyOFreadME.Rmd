@@ -58,7 +58,7 @@ library(sna)
 Sys.setenv(VROOM_CONNECTION_SIZE = 131072 * 10)
 
 #change season to anything from (ex 2020:2024, from 2020 to 2024 seasons)
-game_data <- game_logs(seasons = 2020)
+game_data <- game_logs(seasons = 2022:2024)
 ```
 
 ### Creating Graph Objects
