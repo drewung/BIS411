@@ -13,10 +13,16 @@ output:
 
 ## Narrative Summary
 
-This project analyzes NBA player career trajectories and teammate networks using network analysis. We focus on the \_\_\_ draft class and \_\_\_ season teammates to explore how players connect through shared teams, and use network metrics and community detection to identify key players and roles. We also will be exploring "broker" players The goal is to visualize and interpret player dynamics through graph structures.
+This project analyzes NBA player career trajectories and teammate networks using network analysis. We focus on the \_\_\_ draft class and \_\_\_ season teammates to explore how players connect through shared teams, and use network metrics and community detection to identify key players and roles. We also will be exploring "broker" players, using Gould-Fernandez Brokerage with the RNA package.
 
-We use `nbastatR` to access real NBA data, and `igraph`, `ggraph`, and `dplyr` for data wrangling, network creation, and visualization. This work could help illustrate team structures and player centrality to coaches, analysts, or fans. \## Setup Process
+The goal is to visualize and interpret player dynamics through graph structures.
 
+Our main package for data is going to be `nbastatR` to access real NBA data, 
+and `igraph`, `ggraph`, and `dplyr` for data wrangling, network creation, and 
+visualization. This work could help illustrate team structures and player centrality 
+to coaches, analysts, or fans. 
+
+## Setup Process
 ```{r setup}
 #installing packages
 install.packages("remotes")
@@ -25,22 +31,26 @@ remotes::install_github("abresler/nbastatR", force = TRUE)
 ```
 
 ### Packages Used
-
 ```{r packages}
+#dataset package
+library(nbastatR)
+
+# For brokerage analysis
+library(sna)
+library(intergraph)
+library(statnet)
+
 #packages needed
 library(devtools)
 library(dplyr)
 library(future)
 library(ggplot2)
 library(igraph)
-library(nbastatR)
 library(Rtools)
-
-library(sna)  # For brokerage analysis
+library(knitr)
 ```
 
-### Reading the Data Sets
-
+### Reading in the Data Sets
 ```{r datasets}
 #Adjust VROOM buffer size for large data!
 Sys.setenv(VROOM_CONNECTION_SIZE = 131072 * 10)
@@ -50,17 +60,16 @@ game_data <- game_logs(seasons = 2000:2010)
 ```
 
 ### Creating Graph Objects
-
 ```{r graphObjects}
 # Create player-to-player network based on shared teams
 cat("Creating player teammate network...\n")
 
-
-# Get all player-team-season combinations
+# Unique player-team-season combos
 player_teams <- game_data %>%
   select(namePlayer, slugTeam, slugSeason) %>%
   distinct()
   
+# Create teammate pairs per team-season
 teammate_pairs <- player_teams %>%
   group_by(slugTeam, slugSeason) %>%
   filter(n() > 1) %>%
@@ -82,56 +91,48 @@ teammate_pairs <- player_teams %>%
   filter(shared_teams >= 1)
 
 cat("Teammate connections created:", nrow(teammate_pairs), "\n")
-
 ```
 
 ### Filtering
-
-```{r filter}
-#connection between players
+```{r filtering}
+cat("Filtering connections betwene players...\n")
+# most connected players
 player_connections <- teammate_pairs %>%
   group_by(player1) %>%
   summarise(total_teammates = n(), .groups = "drop") %>%
   arrange(desc(total_teammates))
 
-#choose the top 50%
+# Filter top 100 players by connections
 top_players <- head(player_connections$player1, 100)
 
 filtered_network <- teammate_pairs %>%
   filter(player1 %in% top_players & player2 %in% top_players)
 
 
-#Creates graph
+#Creates graph + simplfly (remove loops and multiple edges)
 players_network <- graph_from_data_frame(filtered_network, directed = FALSE)
-# Simplify graph (remove loops and multiple edges)
 players_network <- simplify(players_network)
 ```
 
-
 ###Detection
-
-```{r detetcion}
-# Community detection
-# Example in igraph
+```{r detection}
+# Detect communities using Louvain algorithm
 communities <- cluster_louvain(players_network)
-
-
 V(players_network)$community <- membership(communities_louvain)
 
-# Betweenness centrality
+#Calculate betweenness centrality
 between <- igraph::betweenness(players_network)
 
-
-#showcases top broker players with between centrality
+# Print top 10 players by betweenness
 at("=== (Betweenness Centrality) ===\n")
 print(head(bet.dat[order(bet.dat$between, decreasing = TRUE),], 10))
 
-#community structure
+# Community summary
 cat("\n=== COMMUNITY STRUCTURE ===\n")
 cat("Number of communities:", max(membership_vec), "\n")
 cat("Modularity:", round(modularity(communities), 3), "\n")
 
-#members of each community
+# Members of community
 for(i in 1:min(5, max(membership_vec))) {
   community_players <- V(players_network)$name[membership_vec == i]
   cat("Community", i, ":", paste(head(community_players, 5), collapse = ", "), 
@@ -140,39 +141,56 @@ for(i in 1:min(5, max(membership_vec))) {
 ```
 
 ### Brokerage Analysis
-```{r brokerage}
-library(intergraph)
-library(statnet)
-library(knitr)
-library(dplyr)
 
-# Convert igraph to network
+Identifies players who connect others across different groups. Measures 5 broker types:
+
+**Coordinator:** Connects players within same group (A→A→A)\
+**Consultant:** Outsider connecting group members (A→B→A)\
+**Gatekeeper:** Controls incoming connections (A→B→B)\
+**Representative:** Controls outgoing connections (A→A→B)\
+**Liaison:** Connects different groups (A→B→C)
+
+Values are also normalized + rounded to two digits
+
+Z-scores show statistical significance - values \>1.96 are unusually high brokers for that role. (sourced from ?brokerage command)
+
+Here are the resources I used to help me,
+
+https://www.rdocumentation.org/packages/sna/versions/2.8/topics/brokerage
+
+https://rstudio-pubs-static.s3.amazonaws.com/320424_f1e3875c90dd489983f92c7628164bdc.html#Brokerage_Roles
+
+```{r Brokerage}
+# Convert igraph to sna network
 snaNetwork <- asNetwork(players_network)
 
 # Confirm the network size matches igraph vertex count
 stopifnot(network.size(snaNetwork) == length(V(players_network)))
 
+#Assign communities as vertex attributes
 community_named <- membership(communities)
 names(community_named) <- V(players_network)$name
 
-# 5. Assign community attribute to the network vertices by matching names
+#Assign community attribute to the network vertices by matching names
 set.vertex.attribute(
   snaNetwork,
   "community",
   value = community_named[get.vertex.attribute(snaNetwork, "vertex.names")]
 )
 
-# 6. Confirm community distribution
+#  Check to see if community listed
 print(table(get.vertex.attribute(snaNetwork, "community")))
 
-# 7. Run brokerage analysis
+# Brokerage Analysis
 brokerage_results <- brokerage(snaNetwork, cl = get.vertex.attribute(snaNetwork, "community"))
 
-# Create dataframe from results
+# Create dataframe from brokerage anaylsis result, 2 DIGITS
 brokerage_df <- round(brokerage(snaNetwork, cl=get.vertex.attribute(snaNetwork, "community"))$z.nli, 2) 
 
-#un rounded non nom,rialized
+#Here is the un-rounded non-normalized version of above
 #brokerage_dftest <- brokerage_results$raw.nli
+
+#Collumn names readability
 colnames(brokerage_df) <- c(
   "Coordinator",     # was w_I
   "Consultant",      # was w_O
@@ -190,26 +208,22 @@ print(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), ])
 print("=== TOP 5 TOTAL BROKERS ===")
 print(head(brokerage_df[order(brokerage_df[, "Total"], decreasing = TRUE), ], 5))
 
-# Show significant brokers (z > 1.96)
-significant <- brokerage_df[brokerage_df[, "Total"] > 1.96, ]
-if(nrow(significant) > 0) {
-  print("=== SIGNIFICANT TOTAL BROKERS (z > 1.96) ===")
-  print(significant[order(significant[, "Total"], decreasing = TRUE), ])
-}
-
-# Show top player in each category
-print("=== TOP PLAYER BY CATEGORY ===")
+# Show top 3 players in each category
+print("=== TOP 3 PLAYERS BY CATEGORY ===")
 for(col in colnames(brokerage_df)) {
-  top_player <- rownames(brokerage_df)[which.max(brokerage_df[, col])]
-  top_score <- max(brokerage_df[, col])
-  print(paste(col, ":", top_player, "(", top_score, ")"))
+ print(paste("=== TOP 3", col, "==="))
+ sorted <- brokerage_df[order(brokerage_df[, col], decreasing = TRUE), ]
+ top_3 <- head(sorted[, col, drop = FALSE], 3)
+ for(i in 1:nrow(top_3)) {
+   print(paste(i, ".", rownames(top_3)[i], "(", top_3[i, 1], ")"))
+ }
+ writeLines("")  # blank line
 }
 ```
 
 ### Description of the Data and Link
 
 ## Network Plot
-
 ```{r plotting}
 # Find the top player in each community
 community_tops <- by(1:length(V(players_network)), membership(communities), function(idx) {
